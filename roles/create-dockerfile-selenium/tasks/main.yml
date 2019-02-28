@@ -1,102 +1,75 @@
 ---
-- name: create-dockerfile-sensu | Create Docker directory for Sensu API
+# ==> SELENIUM HUB
+- name: create-dockerfile-selenium | Create Docker directory for selenium hub
   file:
     state: directory
-    path: ./adop-docker-compose/sensu-api
+    path: ./adop-docker-compose/selenium-hub
   tags:
-    - sensu
-    - sensu-api
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
 
-- name: create-dockerfile-sensu | Create Resources directory for Sensu API
-  file:
-    state: directory
-    path: ./adop-docker-compose/sensu-api/resources
+- name: create-dockerfile-selenium | Copy files to selenium hub folder
+  shell: "cp -r ./roles/create-dockerfile-selenium/files/{{ item }} ./adop-docker-compose/selenium-hub/"
+  with_items:
+      - start-selenium-node.sh
+      - start-xvfb.sh
   tags:
-    - sensu
-    - sensu-api
-  when: sensu == "enabled"
-
-- name: create-dockerfile-sensu | Copy files to resources folder
-  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-api/resources/"
-  tags:
-    - sensu
-    - sensu-api
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
    
-- name: create-dockerfile-sensu | Create Dockerfile for Sensu API
+- name: create-dockerfile-selenium | Create Dockerfile for selenium hub
   template:
-    src: dockerfile-template-sensu-api.j2
-    dest: ./adop-docker-compose/sensu-api/Dockerfile
+    src: dockerfile-template-selenium-hub.j2
+    dest: ./adop-docker-compose/selenium-hub/Dockerfile
   tags:
-    - sensu
-    - sensu-api
-  when: sensu == "enabled"
-  
-- name: create-dockerfile-sensu | Create Docker directory for Sensu Server
+    - selenium
+  when: selenium == "enabled"
+
+# ==> SELENIUM NODE CHROME
+- name: create-dockerfile-selenium | Create Docker directory for selenium node chrome
   file:
     state: directory
-    path: ./adop-docker-compose/sensu-server
+    path: ./adop-docker-compose/selenium-node-chrome
   tags:
-    - sensu
-    - sensu-server
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
 
-- name: create-dockerfile-sensu | Create Resources directory for Sensu Server
-  file:
-    state: directory
-    path: ./adop-docker-compose/sensu-server/resources
+- name: create-dockerfile-selenium | Copy files to selenium node chrome folder
+  shell: "cp -r ./roles/create-dockerfile-selenium/files/{{ item }} ./adop-docker-compose/selenium-node-chrome/"
+  with_items:
+      - wrap_chrome_binary
+      - generate_config_chrome
   tags:
-    - sensu
-    - sensu-server
-  when: sensu == "enabled"
-
-- name: create-dockerfile-sensu | Copy files to resources folder
-  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-server/resources/"
-  tags:
-    - sensu
-    - sensu-server
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
    
-- name: create-dockerfile-sensu | Create Dockerfile for Sensu Server
+- name: create-dockerfile-selenium | Create Dockerfile for selenium node chrome
   template:
-    src: dockerfile-template-sensu-server.j2
-    dest: ./adop-docker-compose/sensu-server/Dockerfile
+    src: dockerfile-template-selenium-node-chrome.j2
+    dest: ./adop-docker-compose/selenium-node-chrome/Dockerfile
   tags:
-    - sensu
-    - sensu-server
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
 
-- name: create-dockerfile-sensu | Create Docker directory for Sensu Client
+# ==> SELENIUM NODE FIREFOX
+- name: create-dockerfile-selenium | Create Docker directory for selenium node firefox
   file:
     state: directory
-    path: ./adop-docker-compose/sensu-client
+    path: ./adop-docker-compose/selenium-node-firefox
   tags:
-    - sensu
-    - sensu-client
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
 
-- name: create-dockerfile-sensu | Create Resources directory for Sensu Client
-  file:
-    state: directory
-    path: ./adop-docker-compose/sensu-client/resources
+- name: create-dockerfile-selenium | Copy files to resources folder
+  shell: "cp -r ./roles/create-dockerfile-selenium/files/generate_config_firefox ./adop-docker-compose/selenium-node-firefox/"
   tags:
-    - sensu
-    - sensu-client
-  when: sensu == "enabled"
-
-- name: create-dockerfile-sensu | Copy files to resources folder
-  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-client/resources/"
-  tags:
-    - sensu
-    - sensu-client
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
    
-- name: create-dockerfile-sensu | Create Dockerfile for Sensu Client
+- name: create-dockerfile-selenium | Create Dockerfile for selenium node firefox
   template:
-    src: dockerfile-template-sensu-client.j2
-    dest: ./adop-docker-compose/sensu-client/Dockerfile
+    src: dockerfile-template-selenium-node-firefox.j2
+    dest: ./adop-docker-compose/selenium-node-firefox/Dockerfile
   tags:
-    - sensu
-    - sensu-client
-  when: sensu == "enabled"
+    - selenium
+  when: selenium == "enabled"
