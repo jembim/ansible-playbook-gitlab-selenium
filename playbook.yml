@@ -11,5 +11,6 @@
    #insert additional roles here
    #- create-dockerfile-jenkins
     - create-dockerfile-proxy
+    - create-dockerfile-selenium
     - create-docker-compose-file
     
