@@ -1,0 +1,15 @@
+---
+- name: Create ADOP
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - tools.json
+  roles:
+    - initialize-folder
+    - create-dockerfile-sensu
+   #insert additional roles here
+   #- create-dockerfile-jenkins
+    - create-dockerfile-proxy
+    - create-docker-compose-file
+    

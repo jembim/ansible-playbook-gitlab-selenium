@@ -1,0 +1,21 @@
+---
+- name: Create docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: ./adop-docker-compose/docker-compose.yml
+
+- name: Check contents
+  shell: "cat ./adop-docker-compose/docker-compose.yml"
+  register: compose_file
+
+- name: Display Compose file
+  debug:
+    var: compose_file.stdout_lines
+
+- docker_service:
+    project_src: adop-docker-compose
+    state: absent
+
+- docker_service:
+    project_src: adop-docker-compose
+  register: output

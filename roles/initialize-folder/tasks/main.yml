@@ -1,0 +1,10 @@
+---
+- name: initialize-folder | Delete adop-docker-compose folder
+  file:
+    state: absent
+    path: ./adop-docker-compose/
+
+- name: initialize-folder | Create adop-docker-compose folder
+  file:
+    state: directory
+    path: ./adop-docker-compose/

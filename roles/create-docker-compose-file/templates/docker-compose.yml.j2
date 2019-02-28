@@ -1,0 +1,211 @@
+version: '2'
+networks:
+  adop-network:
+services:
+{% if sensu == "enabled" %}
+  sensu-uchiwa:
+    container_name: sensu_uchiwa
+    hostname: sensu-uchiwa
+    image: sstarcher/uchiwa:0.15.0
+    restart: always
+    environment:
+      SENSU_HOSTNAME: sensu-api
+      SENSU_DC_NAME: Sensu
+    networks:
+      - adop-network
+    expose:
+      - "3000"
+  sensu-rabbitmq:
+    container_name: sensu-rabbitmq
+    hostname: sensu-rabbitmq
+    image: rabbitmq:3.5.7-management
+    restart: always
+    networks:
+      - adop-network
+    expose:
+      - "5671"
+      - "5672"
+      - "15671"
+      - "15672"
+  sensu-redis:
+    container_name: sensu-redis
+    hostname: sensu-redis
+    image: redis:3.0.7
+    restart: always
+    environment:
+      SENSU_HOSTNAME: sensu-api
+      SENSU_DC_NAME: Sensu
+    networks:
+      - adop-network
+    expose:
+      - "6379"
+  sensu-api:
+    container_name: sensu-api
+    hostname: sensu-api
+    build: ./sensu-api
+    image: sensu-api:0.0.1
+    restart: always
+    command: api
+    environment:
+      TRANSPORT_NAME: rabbitmq
+      RABBITMQ_HOST: sensu-rabbitmq
+      REDIS_HOST: sensu-redis
+    networks:
+      - adop-network
+    expose:
+      - "4567"
+  sensu-server:
+    container_name: sensu-server
+    hostname: sensu-server
+    build: ./sensu-server
+    image: sensu-server:0.0.1
+    restart: always
+    command: server
+    environment:
+      API_HOST: sensu-api
+      RABBITMQ_HOST: sensu-rabbitmq
+      REDIS_HOST: sensu-redis
+      TRANSPORT_NAME: rabbitmq
+    networks:
+      - adop-network
+  sensu-client:
+    container_name: sensu-client
+    hostname: sensu-client
+    build: ./sensu-client
+    image: sensu-client:0.0.1
+    restart: always
+    command: client
+    environment:
+      TRANSPORT_NAME: rabbitmq
+      CLIENT_NAME: core
+      CLIENT_ADDRESS: 127.0.0.1
+      RABBITMQ_HOST: sensu-rabbitmq
+      JENKINS_PREFIX: jenkins
+      CLIENT_SUBSCRIPTIONS: "proxy,gerrit,jenkins,nexus,sonarqube,sensu,kibana"
+    networks:
+      - adop-network
+{% endif %}
+{% if selenium == "enabled" %}
+  selenium-hub:
+    container_name: selenium-hub
+    restart: always
+    image: {{ selenium_hub_version }}
+    networks:
+      - adop-network
+    expose:
+      - "4444"
+
+  selenium-node-chrome:
+    container_name: selenium-node-chrome
+    restart: always
+    image: {{ selenium_node_chrome_version }}
+    networks:
+      - adop-network
+    environment:
+      SE_OPTS: "-nodeConfig /var/selenium-config/config-chrome.json"
+      REMOTE_HOST: "http://selenium-node-chrome:5555"
+      HUB_PORT_4444_TCP_ADDR: "selenium-hub"
+      HUB_PORT_4444_TCP_PORT: "4444"
+
+  selenium-node-firefox:
+    container_name: selenium-node-firefox
+    restart: always
+    image: {{ selenium_node_firefox_version }}
+    networks:
+      - adop-network
+    environment:
+      SE_OPTS: "-nodeConfig /var/selenium-config/config-firefox.json"
+      REMOTE_HOST: "http://selenium-node-firefox:5555"
+      HUB_PORT_4444_TCP_ADDR: "selenium-hub"
+      HUB_PORT_4444_TCP_PORT: "4444"
+{% endif %}
+{% if proxy == "enabled" %}
+  proxy:
+    container_name: proxy
+    hostname: proxy
+    build: ./proxy
+    image: proxy:0.0.1
+    restart: always
+    environment:
+      - "constraint:tier==public"
+    networks:
+      - adop-network
+    ports:
+      - "80:80"
+      - "443:443"
+{% endif %}
+{% if gitlab == "enabled" %}
+  {% if ldap == "enabled" %}
+  gitlab:
+    container_name: gitlab
+    restart: always
+    image: gitlab/gitlab-ce:8.11.6-ce.0
+    networks:
+      - adop-network
+    expose:
+      - "80"
+      - "443"
+      - "22"
+    volumes:
+      - gitlab_etc:/etc/gitlab
+      - gitlab_opt:/var/opt/gitlab
+      - gitlab_log:/var/log/gitlab
+    environment:
+      GITLAB_ROOT_PASSWORD: ${PASSWORD_GITLAB}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://${PUBLIC_IP}/gitlab'
+        gitlab_rails['smtp_enable'] = '${ADOP_SMTP_ENABLED}'
+        gitlab_rails['smtp_address'] = 'mail-server'
+        gitlab_rails['smtp_port'] = 25
+        gitlab_rails['smtp_user_name'] = '${INITIAL_ADMIN_USER}@${LDAP_DOMAIN}'
+        gitlab_rails['smtp_password'] = '${INITIAL_ADMIN_PASSWORD_PLAIN}'
+        gitlab_rails['smtp_domain'] = '${SMTP_DOMAIN}'
+        gitlab_rails['smtp_authentication'] = 'login'
+        gitlab_rails['smtp_enable_starttls_auto'] = true
+        gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+        gitlab_rails['ldap_enabled'] = true
+        gitlab_rails['ldap_servers'] = YAML.load <<-'EOS'
+          main:
+            label: 'LDAP'
+            host: ldap
+            port: 389
+            uid: 'uid'
+            method: 'plain'
+            bind_dn: 'cn=admin,${LDAP_FULL_DOMAIN}'
+            password: '${LDAP_PWD}'
+            active_directory: false
+            allow_username_or_email_login: false
+            block_auto_created_users: false
+            base: '${LDAP_FULL_DOMAIN}'
+        EOS
+  {% endif %}
+  {% if ldap == "disabled" %}
+  gitlab:
+    container_name: gitlab
+    restart: always
+    image: gitlab/gitlab-ce:8.11.6-ce.0
+    networks:
+      - adop-network
+    expose:
+      - "80"
+      - "443"
+      - "22"
+    volumes:
+      - gitlab_etc:/etc/gitlab
+      - gitlab_opt:/var/opt/gitlab
+      - gitlab_log:/var/log/gitlab
+    environment:
+      GITLAB_ROOT_PASSWORD: ${PASSWORD_GITLAB}
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://${PUBLIC_IP}/gitlab'
+        gitlab_rails['smtp_enable'] = '${ADOP_SMTP_ENABLED}'
+        gitlab_rails['smtp_address'] = 'mail-server'
+        gitlab_rails['smtp_port'] = 25
+        gitlab_rails['smtp_user_name'] = '${INITIAL_ADMIN_USER}@${LDAP_DOMAIN}'
+        gitlab_rails['smtp_password'] = '${INITIAL_ADMIN_PASSWORD_PLAIN}'
+        gitlab_rails['smtp_domain'] = '${SMTP_DOMAIN}'
+        gitlab_rails['smtp_authentication'] = 'login'
+        gitlab_rails['smtp_enable_starttls_auto'] = true
+        gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+  {% endif %}
+{% endif %}

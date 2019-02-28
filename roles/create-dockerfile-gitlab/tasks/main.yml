@@ -1,0 +1,24 @@
+---
+- name: create-dockerfile-gitlab | Create Docker directory for gitlab
+  file:
+    state: directory
+    path: ./adop-docker-compose/gitlab
+  tags:
+    - gitlab
+  when: gitlab == "enabled"
+
+- name: create-dockerfile-gitlab | Create Resources directory for gitlab
+  file:
+    state: directory
+    path: ./adop-docker-compose/gitlab/resources
+  tags:
+    - gitlab
+  when: gitlab == "enabled"
+   
+- name: create-dockerfile-gitlab | Create Dockerfile for gitlab
+  template:
+    src: dockerfile-template-gitlab.j2
+    dest: ./adop-docker-compose/gitlab/Dockerfile
+  tags:
+    - gitlab
+  when: gitlab == "enabled"
