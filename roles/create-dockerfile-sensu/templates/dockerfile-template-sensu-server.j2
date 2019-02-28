@@ -1,0 +1,35 @@
+FROM {{ sensu_version }}
+
+# Enable Embedded Ruby
+RUN sed -i -r 's/EMBEDDED_RUBY=false/EMBEDDED_RUBY=true/' /etc/default/sensu
+
+# Install Mailer 2.5.4
+RUN /opt/sensu/embedded/bin/gem install mail --version 2.5.4
+RUN /opt/sensu/embedded/bin/gem install aws-ses
+
+# Bake config & checks in
+{% if gitlab == "enabled" %}
+COPY resources/check.d/check_HTTP_gitlab.json /etc/sensu/check.d/
+{% endif %}
+{% if jenkins == "enabled" %}
+COPY resources/check.d/check_HTTP_jenkins.json /etc/sensu/check.d/
+{% endif %}
+{% if elk == "enabled" %}
+COPY resources/check.d/check_HTTP_kibana.json /etc/sensu/check.d/
+{% endif %}
+{% if nexus == "enabled" %}
+COPY resources/check.d/check_HTTP_nexus.json /etc/sensu/check.d/
+{% endif %}
+{% if proxy == "enabled" %}
+COPY resources/check.d/check_HTTP_proxy.json /etc/sensu/check.d/
+{% endif %}
+{% if sonarqube == "enabled" %}
+COPY resources/check.d/check_HTTP_sonarqube.json /etc/sensu/check.d/
+{% endif %}
+{% if sensu == "enabled" %}
+COPY resources/check.d/check_HTTP_uchiwa.json /etc/sensu/check.d/
+{% endif %}
+COPY resources/check.d/check_basic* /etc/sensu/check.d/
+COPY resources/conf.d/* /etc/sensu/conf.d/
+COPY resources/handlers/* /etc/sensu/handlers/
+RUN chmod -R +x /etc/sensu/plugins

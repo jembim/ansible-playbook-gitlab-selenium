@@ -1,0 +1,102 @@
+---
+- name: create-dockerfile-sensu | Create Docker directory for Sensu API
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-api
+  tags:
+    - sensu
+    - sensu-api
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Create Resources directory for Sensu API
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-api/resources
+  tags:
+    - sensu
+    - sensu-api
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Copy files to resources folder
+  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-api/resources/"
+  tags:
+    - sensu
+    - sensu-api
+  when: sensu == "enabled"
+   
+- name: create-dockerfile-sensu | Create Dockerfile for Sensu API
+  template:
+    src: dockerfile-template-sensu-api.j2
+    dest: ./adop-docker-compose/sensu-api/Dockerfile
+  tags:
+    - sensu
+    - sensu-api
+  when: sensu == "enabled"
+  
+- name: create-dockerfile-sensu | Create Docker directory for Sensu Server
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-server
+  tags:
+    - sensu
+    - sensu-server
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Create Resources directory for Sensu Server
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-server/resources
+  tags:
+    - sensu
+    - sensu-server
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Copy files to resources folder
+  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-server/resources/"
+  tags:
+    - sensu
+    - sensu-server
+  when: sensu == "enabled"
+   
+- name: create-dockerfile-sensu | Create Dockerfile for Sensu Server
+  template:
+    src: dockerfile-template-sensu-server.j2
+    dest: ./adop-docker-compose/sensu-server/Dockerfile
+  tags:
+    - sensu
+    - sensu-server
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Create Docker directory for Sensu Client
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-client
+  tags:
+    - sensu
+    - sensu-client
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Create Resources directory for Sensu Client
+  file:
+    state: directory
+    path: ./adop-docker-compose/sensu-client/resources
+  tags:
+    - sensu
+    - sensu-client
+  when: sensu == "enabled"
+
+- name: create-dockerfile-sensu | Copy files to resources folder
+  shell: "cp -r ./roles/create-dockerfile-sensu/files/* ./adop-docker-compose/sensu-client/resources/"
+  tags:
+    - sensu
+    - sensu-client
+  when: sensu == "enabled"
+   
+- name: create-dockerfile-sensu | Create Dockerfile for Sensu Client
+  template:
+    src: dockerfile-template-sensu-client.j2
+    dest: ./adop-docker-compose/sensu-client/Dockerfile
+  tags:
+    - sensu
+    - sensu-client
+  when: sensu == "enabled"

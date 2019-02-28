@@ -1,0 +1,54 @@
+---
+- name: create-dockerfile-nginx | Create Docker directory for Nginx
+  file:
+    state: directory
+    path: ./adop-docker-compose/proxy
+  tags:
+    - nginx
+  when: proxy == "enabled"
+
+- name: create-dockerfile-nginx | Create Resources directory for Nginx
+  file:
+    state: directory
+    path: ./adop-docker-compose/proxy/resources
+  tags:
+    - nginx
+  when: proxy == "enabled"
+
+- name: create-dockerfile-nginx | Copy files to resources folder
+  shell: "cp -r ./roles/create-dockerfile-proxy/files/* ./adop-docker-compose/proxy/resources/"
+  tags:
+    - nginx
+  when: proxy == "enabled"
+   
+- name: create-dockerfile-nginx | Create Dockerfile for Nginx
+  template:
+    src: dockerfile-template-nginx.j2
+    dest: ./adop-docker-compose/proxy/Dockerfile
+  tags:
+    - nginx
+  when: proxy == "enabled"
+ 
+- name: create-dockerfile-nginx | Create nginx.conf 
+  template:
+    src: nginx.conf.j2
+    dest: ./adop-docker-compose/proxy/resources/configuration/nginx.conf
+  tags:
+    - nginx
+  when: proxy == "enabled"
+ 
+- name: create-dockerfile-nginx | Create plugins.json
+  template:
+    src: plugins.json.j2
+    dest: ./adop-docker-compose/proxy/resources/release_note/plugins.json
+  tags:
+    - nginx
+  when: proxy == "enabled"
+  
+- name: create-dockerfile-nginx | Create tools-context.conf
+  template:
+    src: tools-context.conf.j2
+    dest: ./adop-docker-compose/proxy/resources/configuration/sites-enabled/tools-context.conf
+  tags:
+    - nginx
+  when: proxy == "enabled"
